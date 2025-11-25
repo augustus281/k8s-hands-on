@@ -20,4 +20,28 @@ This pattern allows containers to work together at runtime while maintaining a c
 supports independent development, different technologies, and separate release cycles, enabling greater reusability and
 replaceability across applications.
 
+## Difference from Regular Container:
+
+### Supporting Roles:
+Sidecar containers provide additional functionality to the main application but do not execute the primary application
+logic.
+
+### Independent Lifecycle:
+They can be started, stopped, and restarted independently of the main containers. This allows you to update, scale, or 
+maintain sidecar containers without affecting the primary application.
+
+### Shared Namespace:
+Sidecar containers share the same network and storage namespaces with the primary container, enabling close interaction 
+and resource sharing.
+
+## Differences from Init Containers:
+
+### Concurrently Running:
+Sidecar containers work alongside the main container throughout the Pod’s lifecycle, providing continuous service, unlike 
+init containers, which run to completion before the main container starts.
+
+### Interaction with Main Containers:
+Sidecar containers can interact directly with the main application containers, sharing the same network namespace, 
+filesystem, and environment variables.
+
 ![img.png](sidecar-pattern.png)
