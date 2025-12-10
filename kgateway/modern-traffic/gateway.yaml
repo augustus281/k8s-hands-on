@@ -1,0 +1,30 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: gateway-api
+  namespace: default
+  labels:
+    app.kubernetes.io/name: traefik-gateway
+    app.kubernetes.io/component: gateway
+spec:
+  gatewayClassName: traefik
+
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Same
+
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: secret-tls
+            namespace: default
+      allowedRoutes:
+        namespaces:
+          from: Same

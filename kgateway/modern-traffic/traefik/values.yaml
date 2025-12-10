@@ -1,0 +1,19 @@
+logs:
+  access:
+    enabled: true
+ports:
+  web:
+    port: 80
+  websecure:
+    port: 443
+    exposedPort: 443
+# Enable gateway-api features
+providers:
+  kubernetesGateway:
+    enabled: true
+    experimentalChannel: false
+# Disable defaults - we'll provide our own
+gatewayClass:
+  enabled: false
+gateway:
+  enabled: false
