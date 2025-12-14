@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: random-generator
+spec:
+  containers:
+    - name: random-generator
+      image: k8spatterns/random-generator:1.0
+      env:
+        - name: LOG_FILE
+          value: /tmp/random.log
+
+        - name: PATTERN
+          valueFrom:
+            configMapKeyRef:
+              name: random-generator-config
+              key: pattern
+
+        - name: SEED
+          valueFrom:
+            secretKeyRef:
+              name: random-generator-secret
+              key: seed
