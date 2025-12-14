@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: random-generator
+  labels:
+    app: random-generator
+spec:
+  containers:
+    - image: k8spatterns/random-generator:1.0
+      name: main
+      env:
+        - name: LOG_URL
+          value: http://localhost:9009
+      ports:
+        - containerPort: 8080
+          protocol: TCP
+    - image: k8spatterns/random-generator-log-ambassador
+      name: ambassador
