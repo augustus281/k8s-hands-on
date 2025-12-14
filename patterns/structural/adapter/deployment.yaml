@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: random-generator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: random-generator
+  template:
+    metadata:
+      labels:
+        app: random-generator
+    spec:
+      containers:
+        - image: k8spatterns/random-generator:1.0
+          name: random-generator
+          env:
+            - name: LOG_FILE
+              value: /logs/random.log
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /logs
+              name: log-volume
+    # --------------------------------------------
+        - image: k8spatterns/random-generator-exporter
+          name: prometheus-adapter
+          env:
+            - name: LOG_FILE
+              value: /logs/random.log
+          ports:
+            - containerPort: 9889
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /logs
+              name: log-volume
+      volumes:
+        - name: log-volume
+          emptyDir: {}
