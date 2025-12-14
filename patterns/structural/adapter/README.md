@@ -19,6 +19,8 @@ transformed into a common format and protocol. This is especially useful for mon
 languages can expose metrics in a consistent way. As a result, external tools can interact with all services uniformly
 without requiring changes to the main application.
 
+![img.png](adapter.png)
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
