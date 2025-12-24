@@ -234,3 +234,66 @@ Autoscaling decisions involve multiple components and steps, which introduce una
 Increasing delays improves stability but reduces responsiveness. Reducing delays improves reaction time but increases platform load and the risk of oscillations. Finding the right balance is an iterative tuning process.
 
 ### Vertical Pod Autoscaling
+
+**Vertical Pod Autoscaler (VPA)** helps Kubernetes automatically adjust CPU and memory requests and limits for Pods based on real usage patterns. It is especially useful for stateful workloads and for tuning resource configurations when accurate sizing is difficult. By improving resource request accuracy, VPA increases cluster efficiency and also helps Horizontal Pod Autoscaler (HPA) make better scaling decisions. However, because VPA may restart Pods when applying changes, it must be used carefully in production environments.
+
+
+**Example:** VPA
+
+```yaml
+apiVersion: poc.autoscaling.k8s.io/v1alpha1
+kind: VerticalPodAutoscaler
+metadata:
+    name: random-generator-vpa
+spec:
+    selector:
+        matchLabels:                  #1
+            app: random-generator
+    updatePolicy:
+        updateMode: "Off"             #2
+```
+
+- **(1)** - Label selector to identify the Pods to manage
+- **(2)** - The update policy for how VPA will apply changes.
+
+A VPA definition has the following main parts:
+
+_Label selector:_
+- Specifies what to scale by identifying the Pods it should handle.
+
+_Update policy:_
+- Controls how VPA applies changes. The Initial mode allows assigning resource requests only during `Pod` creation time but not later. The default `Auto` mode allows resource assignment to Pods at creation time, but additionally, it can update Pods
+during their lifetimes, by evicting and rescheduling the Pod. The value Off disables automic changes to Pods, but allows suggesting resource values. This is a kind of dry run for discovering the right size of a container, but without applying
+it directly.
+
+**Vertical Pod Autoscaler (VPA)** can be configured with a resource policy to control how recommendations are calculated, such as setting per-container minimum and maximum CPU or memory bounds. VPA consists of three decoupled components: the Recommender, which analyzes historical resource usage and Pod events (like OOMKills and evictions) to generate recommendations; the Admission Plugin, which applies those recommendations to new Pods; and the Updater, which can evict running Pods to enforce updated resource settings.
+
+The behavior of VPA depends on `updateMode`: **Off** mode is non-disruptive and only provides recommendations without applying them; **Initial** mode applies recommendations only to newly created Pods via a mutating admission controller; and **Auto** mode is the most disruptive, as it actively evicts and recreates running Pods to apply updated resource requests.
+
+![1766559610879](image/README/1766559610879.png)
+
+### Cluster Autoscaling
+
+**Cluster Autoscaler (CA)** provides elasticity at the **node level** in Kubernetes. While HPA and VPA scale Pods within an existing cluster, CA ensures that the cluster itself has enough capacity by automatically adding nodes when **Pods are unschedulable and removing nodes when they are underutilized**. It works by monitoring pending Pods and interacting with the underlying cloud provider to provision or decommission nodes as needed. By scaling infrastructure dynamically, CA enables cost-efficient, pay-as-you-go resource usage and completes Kubernetes’ end-to-end autoscaling model.
+
+![1766568149520](image/README/1766568149520.png)
+
+### Scaling Levels
+
+![1766568522711](image/README/1766568522711.png)
+
+#### Application Tuning
+
+Application tuning is a foundational step before applying autoscaling in Kubernetes. If an application does not efficiently use its allocated CPU and memory, horizontal or vertical scaling will be ineffective. Tuning is usually done through configuration (such as thread pools and memory settings) or adaptive libraries, and it must be carefully tested because it can introduce regressions. Properly tuned applications enable all other scaling mechanisms to work more effectively and cost-efficiently.
+
+#### Vertical Pod Autoscaling
+
+After ensuring an application efficiently uses its container resources, the next step is to configure appropriate resource requests and limits. The Vertical Pod Autoscaler (VPA) can help automate this process based on real usage, but applying its recommendations may require Pod restarts, which can cause temporary service disruption. Increasing resource allocations can also make Pods unschedulable or increase pressure on other instances, and may require additional application tuning to fully benefit from the added resources.
+
+#### Horizontal Pod Autoscaling
+
+The first two techniques represent vertical scaling, where performance is improved by tuning existing Pods without changing their number. The next two techniques focus on horizontal scaling, which adjusts the number of Pods or nodes without modifying Pod specifications, making automation easier and reducing the risk of disruption. Horizontal Pod Autoscaler (HPA) is the most widely used approach, evolving from basic CPU and memory metrics to support custom and external metrics. Once the application is properly tuned and its resource usage is understood, enabling HPA allows it to automatically adapt to changing resource demands.
+
+#### Cluster Autoscaling
+
+HPA and VPA provide elasticity only within the existing cluster capacity and can work only if sufficient resources are available. Cluster Autoscaler (CA) operates at the cluster level, adding or removing nodes to adjust overall capacity as needed. CA is completely decoupled from other scaling mechanisms and does not care whether scaling is triggered by users or autoscalers. Together, HPA/VPA and CA form a complementary system that ensures both application-level and cluster-level scalability.
