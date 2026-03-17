@@ -1,0 +1,129 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: environments.platform.company.com
+spec:
+  group: platform.company.com
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              environmentType:
+                type: string
+                enum: ["development", "staging", "production"]
+                description: "Type of environment"
+              resources:
+                type: object
+                properties:
+                  cpu:
+                    type: string
+                    pattern: '^[0-9]+m?$'
+                    description: "CPU allocation"
+                  memory:
+                    type: string
+                    pattern: '^[0-9]+[MGT]i?$'
+                    description: "Memory allocation"
+                  storage:
+                    type: string
+                    pattern: '^[0-9]+[MGT]i?$'
+                    description: "Storage allocation"
+                required:
+                - cpu
+                - memory
+              replicas:
+                type: integer
+                minimum: 1
+                maximum: 10
+                description: "Number of replicas"
+              monitoring:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                    default: true
+                  alerting:
+                    type: boolean
+                    default: false
+                  retention:
+                    type: string
+                    default: "7d"
+              networking:
+                type: object
+                properties:
+                  ingress:
+                    type: boolean
+                    default: false
+                  loadBalancer:
+                    type: boolean
+                    default: false
+                  internal:
+                    type: boolean
+                    default: true
+            required:
+            - environmentType
+            - resources
+            - replicas
+          status:
+            type: object
+            properties:
+              phase:
+                type: string
+                enum: ["Pending", "Ready", "Failed"]
+                description: "Current phase of the environment"
+              conditions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    status:
+                      type: string
+                    reason:
+                      type: string
+                    message:
+                      type: string
+                    lastTransitionTime:
+                      type: string
+                      format: date-time
+              deployedResources:
+                type: object
+                properties:
+                  namespace:
+                    type: string
+                  deployment:
+                    type: string
+                  service:
+                    type: string
+                  configMap:
+                    type: string
+    additionalPrinterColumns:
+    - name: Type
+      type: string
+      description: Environment type
+      jsonPath: .spec.environmentType
+    - name: Replicas
+      type: integer
+      description: Number of replicas
+      jsonPath: .spec.replicas
+    - name: Phase
+      type: string
+      description: Current phase
+      jsonPath: .status.phase
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+  scope: Namespaced
+  names:
+    plural: environments
+    singular: environment
+    kind: Environment
+    shortNames:
+    - env

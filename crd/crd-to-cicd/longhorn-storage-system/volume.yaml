@@ -1,0 +1,14 @@
+apiVersion: longhorn.io/v1beta2
+kind: Volume
+metadata:
+  name: test-volume
+  namespace: longhorn-system
+spec:
+  size: "1Gi"
+  numberOfReplicas: 3
+  staleReplicaTimeout: 2880
+  frontend: blockdev
+  fromBackup: ""
+  diskSelector: []
+  nodeSelector: []
+  recurringJobSelector: []

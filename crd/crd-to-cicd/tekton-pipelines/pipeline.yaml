@@ -1,0 +1,52 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-and-deploy
+  namespace: default
+spec:
+  params:
+  - name: git-url
+    type: string
+    description: Git repository URL
+  - name: git-revision
+    type: string
+    default: main
+    description: Git revision to checkout
+  
+  workspaces:
+  - name: shared-data
+    description: Workspace for sharing data between tasks
+  
+  tasks:
+  - name: fetch-source
+    taskRef:
+      name: git-clone
+    workspaces:
+    - name: output
+      workspace: shared-data
+    params:
+    - name: url
+      value: $(params.git-url)
+    - name: revision
+      value: $(params.git-revision)
+  
+  - name: build-image
+    runAfter:
+    - fetch-source
+    taskRef:
+      name: buildah
+    workspaces:
+    - name: source
+      workspace: shared-data
+    params:
+    - name: IMAGE
+      value: my-app:$(context.pipelineRun.name)
+  
+  - name: deploy
+    runAfter:
+    - build-image
+    taskRef:
+      name: kubectl-deploy
+    params:
+    - name: image
+      value: my-app:$(context.pipelineRun.name)

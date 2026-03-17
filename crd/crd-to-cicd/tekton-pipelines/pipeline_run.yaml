@@ -1,0 +1,22 @@
+# Create a PipelineRun to execute the pipeline
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: build-and-deploy-run-$(date +%s)
+spec:
+  pipelineRef:
+    name: build-and-deploy
+  params:
+  - name: git-url
+    value: https://github.com/myorg/myapp.git
+  - name: git-revision
+    value: main
+  workspaces:
+  - name: shared-data
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi

@@ -1,0 +1,41 @@
+apiVersion: platform.company.com/v1
+kind: Environment
+metadata:
+  name: myapp-dev
+  namespace: development
+spec:
+  environmentType: development
+  replicas: 1
+  resources:
+    cpu: "200m"
+    memory: "512Mi"
+    storage: "1Gi"
+  monitoring:
+    enabled: true
+    alerting: false
+    retention: "3d"
+  networking:
+    ingress: true
+    internal: true
+---
+# Production Environment
+apiVersion: platform.company.com/v1
+kind: Environment
+metadata:
+  name: myapp-prod
+  namespace: production
+spec:
+  environmentType: production
+  replicas: 3
+  resources:
+    cpu: "1000m"
+    memory: "2Gi"
+    storage: "10Gi"
+  monitoring:
+    enabled: true
+    alerting: true
+    retention: "30d"
+  networking:
+    ingress: true
+    loadBalancer: true
+    internal: false
